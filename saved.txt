@@ -1,0 +1,7 @@
+This document is intended to serve as a sample you can use for independent work reports.  We provide some guidelines on content and formatting.  They are not required, but they might be helpful.
+
+This is where I will start the paper. Hopefully the dept will be happy with me. $x+y=2$
+
+This document is a sample you can use for formatting your independent work
+report.  An example template with all bib and supporting files can be downloaded
+from the IW website at {\url{http://iw.cs.princeton.edu}}.
