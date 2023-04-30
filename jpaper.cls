@@ -12,6 +12,7 @@
 %
 % The default set of options is camera,nolineno,nopageno,nohyperref.
 
+\RequirePackage[2020-02-02]{latexrelease}
 \RequirePackage{etoolbox}
 
 \DeclareOption{leqno}{\input{leqno.clo}}
@@ -36,13 +37,21 @@
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{verbatim}
+
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{stmaryrd}
 \SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
+\RequirePackage{lipsum}
+% \RequirePackage{minted}
 \RequirePackage{mathtools}
 \RequirePackage{fixltx2e}
 \RequirePackage{fancyhdr}
+\RequirePackage{fancyvrb}
+
+% \setlength{\headheight}{15pt}.
+% \addtolength{\topmargin}{-20pt}
+
 \RequirePackage[usenames,dvipsnames,svgnames,table]{xcolor}
 
 % Basic text typesetting options.

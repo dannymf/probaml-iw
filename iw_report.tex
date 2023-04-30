@@ -1,4 +1,3 @@
-\RequirePackage[2020-02-02]{latexrelease}
 \documentclass[pageno]{jpaper}
 % \DeclareSymbolFont{letters}{OML}{ztmcm}{m}{it}
 % \DeclareSymbolFontAlphabet{\mathnormal}{letters}
@@ -17,29 +16,31 @@
 \newcommand{\gamimp}{\Gamma \vdash}
 \newcommand{\evalrule}[4]{\frac{#1}{#2} \ \boldsymbol{#3}_{\textbf{#4}}}
 \newcommand{\env}{\mathtt{env}}
+\newcommand{\prob}{\mathtt{prob} \ }
 \newcommand{\angles}[1]{\langle #1 \rangle}
 \newcommand{\parens}[1]{\llparenthesis #1 \rrparenthesis}
 \newcommand{\evalenv}[1]{\langle \env, #1 \rangle}
 \newcommand{\mt}[1]{\mathtt{#1}}
 \newcommand{\rulename}[2]{$\boldsymbol{#1}_{\textbf{#2}}$}
 
+\makeatletter
+\def\verbatim@font{\linespread{1}\normalfont\ttfamily}
+\makeatother
+
 \widowpenalty=9999
 
 \usepackage[normalem]{ulem}
 
-\def\psetnum{5}
-\def\problemnum{3}
-\def\duedate{4/24/23}
-
 \pagestyle{fancy}
-\fancyhead[L]{COS 445: PSet\psetnum}
-\fancyhead[C]{\textbf{Problem \problemnum}}
-\fancyhead[R]{Due: \duedate}
+\fancyhead[L]{IW Report}
+\fancyhead[C]{\textbf{Implementing ProbaML}}
+\fancyhead[R]{Spring 2023}
 
 \begin{document}
+\thispagestyle{empty}
 
 \title{
-  Implementation of a Functional Language Supporting Probabilistic Computation}
+  ProbaML: Implementation of a Functional Language Supporting Probabilistic Computation}
 
 \author{Daniel Friedman\\\textbf{Adviser:} David Walker}
 
@@ -54,6 +55,13 @@
 \tableofcontents
 
 \section{Introduction}
+Functional programming languages have become increasingly popular in recent years due to their ability to reason about complex computations by using functions without side effects. This is especially important in probabilistic computations, which are inherently difficult to reason about due to the presence of randomness. In this paper, we present the design, operational semantics, and implementation of a custom functional language that supports probabilistic features such as sampling from distributions and computing expectations.
+
+Probabilistic programming has gained significant attention in recent years due to its many applications in machine learning, robotics, and a variety of other fields. In addition, it is well suited for programs involving probabilistic computations and uncertainty. However, writing probabilistic programs can be challenging because they involve reasoning about random variables and their relationships. Functional programming paradigms have been shown to be well-suited for probabilistic programming because they provide a natural way to express computations involving randomness without side effects, enabling the programmer to write less error-prone code.
+
+In this project, we explain the design and implementation of a custom functional language, \textbf{ProbaML}, that supports probabilistic features while utilizing the functional paradigm. The language includes support for expressing probability distributions and operations on them, as well as the ability to compute expectations. We believe that this language can be a useful tool for researchers and practitioners in the field of functional probabilistic programming.
+
+Furthermore, the implementation of the language will provide a clear and concise example of how to build an interpreter from the ground up. This can be a valuable resource for students learning about functional programming concepts and language implementation. Overall, we believe that this project can contribute to the development of new and more efficient probabilistic programming languages and tools.
 
 \section{Background and Related Work}
 
@@ -93,6 +101,33 @@ The implementation of ProbaML is divided into several parts. First, we describe 
     }}
 \end{figure}
 The above figure summarizes the types of terms in ProbaML. We begin with types, where the language supports the standard types, as well as a real number type and a $\text{prob } A$ type Note the distinction between \emph{terms} and \emph{expressions}.
+
+\subsubsection{Implementation of the Abstract Syntax Tree}
+\begin{Verbatim}[frame=single, baselinestretch=1, formatcom=\color{MidnightBlue}]
+  (** The type of expressions in the abstract syntax tree (AST) **)
+  type expr =
+  (* Deterministic *)
+  | Var of var                    // variables
+  | Int of int                    // integers
+  | Bool of bool                  // booleans
+  | Float of float                // floating-pt numbers
+  | Fun of var * typ * expr       // anonymous function definitions
+  | Rec of var * var * expr * typ // recursive function definitions
+  | Closure of var * var * expr * typ * env // function closures
+  | App of expr * expr            // function application
+  | Binop of bop * expr * expr    // binary-op expressions (+, -, *, <=)
+  | Let of var * expr * expr      // let bindings
+  | If of expr * expr * expr      // if-then-else expressions
+
+  (* Probabilistic *)
+  | Random                        // the uniform sampling expression S
+  | Sample of var * expr * expr   // the 'sample from' binding
+  | Prob of expr                  // probability distribution
+  | AppProb of expr               // sampling from a distribution
+  | Eif of expr * expr * expr     // eif-then-else expressions
+
+  and env = expr Env.t // environment mapping variables to bindings
+\end{Verbatim}
 
 \subsection{Typing Rules}
 As mentioned above, one of the key motivations for the creation of the language is that we can formalize its typing rules to ensure type safety. Since some expressions in ProbaML are probabilistic, it is especially significant to describe such judgments for probabilistic computations.
@@ -200,11 +235,14 @@ We now explain the deterministic evaluation rules presented in Figure~\ref{fig:e
 We proceed to explain the evaluation rules for probabilistic terms in ProbaML. One of the motivations for ProbaML is to isolate the randomness and formalize the probabilistic computations in a deterministic manner. For this reason, we consider every expression to be evaluated with a \emph{sampling sequence}, an infinite list of randomly generated numbers $\omega=r_1 r_2 r_3 \cdots$. After an expression is evaluated, it consumes a finite amount of these numbers in order from $\omega$, and we call the remained of this infinite list $\omega'$
 We represent the evaluation of probabilistic expressions as $\evalenv{E} @ \omega \esteps V \omega'$, meaning that a term $E$ in environment $\env$ with sampling sequence $\omega$ \emph{probabilistically steps} to a value $V$, consuming zero or more numbers from $\omega$ and returning $\omega'$. Note that $\evalenv{E} @ \omega \esteps V \omega'$ is deterministic. It is only when the sequence $\omega$ changes that the evaluation may produce a different result, but when $\omega$ is consistent, the result will always be the same.
 
-We now explain the probabilistic evaluation rules.
+We now explain the probabilistic evaluation rules presented in Figure~\ref{fig:evalproba}.
 
 \begin{itemize}
   \item The \rulename{E}{Samp} rule is the random sampling rule. Given any environment $\env$ and number $r$ followed by a sequence $\omega$, $\mathbb{S}$ will consume and output the first number of that sequence, $r$, and return the rest of the sequence $\omega$.
-  \item The \rulename{E}{Bind} is the let binding rule when drawing from probability distributions. It states that if $E_1$ evaluates to some probability distribution $\mt{prob} \ E_2$ and
+  \item The \rulename{E}{Bind} is the let binding rule when drawing from probability distributions. It states that if (in some environment $\env$ and sampling sequence $\omega$) $E_1$ evaluates to some probability distribution $\mt{prob} \ E_2$ with remaining sampling sequence $\omega'$, $E_2$ computes to some value $V_1$, and $E_2$ computes to $V_2$ in the environment $\env$ with the binding $x$ to $V_1$, then $\mt{sample} \ x \ \mt{from} \ E_1 \ \mt{in} \ E_2$ with sampling sequence $\omega$ evaluates to $V_2$ along with the remaining sampling sequence $\omega'''$.
+  \item The \rulename{E}{Unprob} rule is the rule for sampling a single value from a probability distribution. It states that if $E_1$ evaluates to some probability distribution $\prob E_2$ and $E_2$ computes to a value $V$, then $\mt{unprob} \ E_1$ returns this value $V$ along with the remaining sampling sequence.
+  \item The \rulename{E}{IfTrue} rule is the if-statement rule for sampling from a probability distribution when the if-guard evaluates to $\mt{true}$. It states that if the guard evaluates to true and the first term evaluates to a probability distribution, and that distribution computes to a value when sampled, then $\mt{eif} \ M \ \mt{then} \ E_1 \ \mt{else} \ E_2$ evaluates to a sample drawn from probability distribution $E_2$.
+  \item The \rulename{E}{IfFalse} rule is corresponding rule to the \rulename{E}{IfTrue} above, except when the if-guard evaluates to $\mt{false}$.
 \end{itemize}
 
 \begin{figure}[hbt]
@@ -217,8 +255,10 @@ We now explain the probabilistic evaluation rules.
         \evalenv{E_1}@\omega \esteps \mt{prob} \ E_2 @ \omega' \\[-14pt]
         \evalrule{\evalenv{E_2} @ \omega' \esteps V_1 @ \omega'' \quad \langle \env[x \rightarrow V_1], E_2 \rangle @ \omega'' \esteps V_2 @ \omega'''}{\evalenv{\mt{sample} \ x \ \mt{from} \ E_1 \mt{in} \ E_2} @ \omega \esteps V_2 @ \omega'''}{E}{Bind} \\
         \evalrule{\evalenv{E_1}@\omega \tsteps \mt{prob} \ E_2 \quad \evalenv{E_2}@\omega \esteps V @ \omega'}{\evalenv{\mt{unprob} \ E_1} @ \omega \esteps V @ \omega''}{E}{Unprob} \\
-        \evalrule{\evalenv{M}@\omega \esteps \mt{true} \quad \evalenv{E_1} @ \omega' \esteps V @ \omega''}{\evalenv{\mt{eif} \ M \ \mt{then} \ E_1 \ \mt{else} \ E_2} @ \omega \esteps V @ \omega''}{E}{EifTrue} \\
-        \evalrule{\evalenv{M}@\omega \esteps \mt{false} \quad \evalenv{E_2} @ \omega' \esteps V @ \omega''}{\evalenv{\mt{eif} \ M \ \mt{then} \ E_1 \ \mt{else} \ E_2}}{E}{EifFalse}
+        \evalenv{M}@\omega \esteps \mt{true} @ \omega' \\[-14pt]
+        \evalrule{\evalenv{E_1} @ \omega' \esteps \prob E_3 @ \omega'' \quad \evalenv{E_3} @ \omega'' \esteps V @ \omega'''}{\evalenv{\mt{eif} \ M \ \mt{then} \ E_1 \ \mt{else} \ E_2} @ \omega \esteps V @ \omega'''}{E}{EifTrue} \\
+        \evalenv{M}@\omega \esteps \mt{false} @ \omega' \\[-14pt]
+        \evalrule{\evalenv{E_2} @ \omega' \esteps \prob E_3 @ \omega'' \quad \evalenv{E_3} @ \omega'' \esteps V @ \omega'''}{\evalenv{\mt{eif} \ M \ \mt{then} \ E_1 \ \mt{else} \ E_2 @ \omega \esteps V @ \omega'''}}{E}{EifFalse}
       \end{gather*}
       \caption{Operational semantics for probabilistic terms in ProbaML.}
       \label{fig:evalproba}
@@ -226,11 +266,148 @@ We now explain the probabilistic evaluation rules.
 \end{figure}
 
 \subsection{Implementation of Type Checker}
+After completing the parsing and lexing, we implement the type checker for the abstract syntax tree using a recursive OCaml function \texttt{typeof}. First, we define a ProbaML type in the following OCaml data type, \texttt{typ}.
+
+\begin{Verbatim}[frame=single, baselinestretch=1, formatcom=\color{MidnightBlue}]
+  type typ =
+  | TInt                   // A ProbaML int
+  | TBool                  // A ProbaML bool
+  | TReal                  // A ProbaML float
+  | TProb of typ           // A ProbaML probability distribution type
+  | TArrow of typ * typ    // A ProbaML arrow type
+\end{Verbatim}
+
+\begin{verbatim}
+  let rec typeof (ctx : Context.t) (expr : expr) : typ = match expr with
+    | Int _ -> TInt
+    | Float _ -> TReal
+    | Prob e -> TProb (typeof ctx e)
+    | Closure (_, _, _, typ, _) -> typ
+    | Var x -> Context.lookup ctx x
+    | Let (x, e1, e2) -> let t' = typeof ctx e1 in
+                         let ctx' = Context.extend ctx x t' in
+                         typeof ctx' e2
+    | AppProb e -> ( match typeof ctx e with
+                   | TProb e' -> e'
+                   | _ -> type_error Errors.proba_err )
+    | App (e1, e2) -> ( match typeof ctx e1, typeof ctx e2 with
+                      | TArrow (typ1, typ2), typ3 when typ1 = typ3 -> typ2
+                      | _ -> type_error Errors.app_err )
+    | Sample (x, e1, e2) -> ( match typeof ctx e1 with
+                            | TProb t ->
+                              let ctx' = Context.extend ctx x t in
+                              typeof ctx' e2
+                            | _ -> type_error Errors.bind_sample_err )
+    ...
+\end{verbatim}
+
 \subsection{Implementation of Evaluation Relation}
+\lipsum[1-2]
+
+\newpage
+\subsection{Examples of Probabilistic Computation in ProbaML}
+We describe some examples defining probabilistic distributions and computations, along with their corresponding code.
+
+\subsubsection{The Uniform Distribution}
+\begin{figure}[hbt]
+  \fbox{
+    \parbox[c]{0.98\textwidth}{
+      \centering
+      \setlength{\jot}{10pt}
+      \begin{align*}
+        \mt{let} \textcolor{magenta}{\textit{ uniform}} = \  & \mt{fun} \ a \mt{:real \ -> \ fun} \ b \ \mt{:real \ -> } \\
+        \mt{prob} \                                          & \mt{sample} \ x \ \mt{from \ prob} \ \s \ \mt{in}         \\
+                                                             & a + x * (b - a)
+      \end{align*}
+      \caption{The Uniform Distribution in ProbaML.}
+      \label{fig:uniform}
+    }}
+\end{figure}
+
+\subsubsection{The Bernoulli Distribution}
+\begin{figure}[hbt]
+  \fbox{
+    \parbox[c]{0.98\textwidth}{
+      \centering
+      \setlength{\jot}{10pt}
+      \begin{align*}
+        \mt{let} \textcolor{magenta}{\textit{ bernoulli}} = \  & \mt{fun} \ p \ \mt{:real \ ->}                    \\
+        \mt{prob} \                                            & \mt{sample} \ x \ \mt{from \ prob} \ \s \ \mt{in} \\
+                                                               & x \leq p
+      \end{align*}
+      \caption{The Bernoulli Distribution in ProbaML.}
+      \label{fig:bernoulli}
+    }}
+\end{figure}
+
+\subsection{The Exponential Distribution}
+\begin{figure}[hbt]
+  \fbox{
+    \parbox[c]{0.98\textwidth}{
+      \centering
+      \setlength{\jot}{10pt}
+      \begin{align*}
+        \mt{let} \textcolor{magenta}{\textit{ exponential}} = \  & \mt{fun} \ \lambda \ \mt{:real \ -> }             \\
+        \mt{prob} \                                              & \mt{sample} \ x \ \mt{from \ prob} \ \s \ \mt{in} \\
+                                                                 & -1/\lambda * \log{x}
+      \end{align*}
+      \caption{The Exponential Distribution in ProbaML.}
+      \label{fig:exponential}
+    }}
+\end{figure}
+
+
+\subsection{The Geometric Distribution}
+\begin{figure}[hbt]
+  \fbox{
+    \parbox[c]{0.98\textwidth}{
+      \centering
+      \setlength{\jot}{10pt}
+      \begin{align*}
+        \mt{let \ fix} \ \textcolor{magenta}{\textit{geometric}} = \  & \mt{fun} \ p \ \mt{:real \ ->}                                                                               \\
+                                                                      & \mt{let} \ \textcolor{purple}{\textit{bernoulli}_{p}} = \textcolor{purple}{\textit{ bernoulli }} p \ \mt{in} \\
+        \mt{prob} \                                                   & \mt{sample} \ b \ \mt{from} \ \textcolor{purple}{\textit{bernoulli}_{p}} \ \mt{ in}                          \\
+                                                                      & \mt{eif} \ b \ \mt{then \ 0}                                                                                 \\
+                                                                      & \mt{else \ sample} \ x \ \mt{from} \ \textcolor{magenta}{\textit{geometric}} \ \mt{in} \ 1+x
+      \end{align*}
+      \caption{The Geometric Distribution in ProbaML.}
+      \label{fig:geometric}
+    }}
+\end{figure}
+
+\subsubsection{The Gaussian Distribution}
+\begin{figure}[hbt]
+  \fbox{
+    \parbox[c]{0.98\textwidth}{
+      \centering
+      \setlength{\jot}{10pt}
+      \begin{align*}
+        \mt{let} \textcolor{magenta}{\textit{ gaussian}} = \  & \mt{fun} \ m \mt{:real \ -> \ fun} \ \sigma \ \mt{:real \ -> } \\
+        \mt{prob} \                                           & \mt{sample} \ u \ \mt{from \ prob} \ \s \ \mt{in}              \\
+                                                              & \mt{sample} \ v \ \mt{from \ prob} \ \s \ \mt{in}              \\
+                                                              & m + \sigma * \sqrt{-2.0 * \log u} * \cos (2.0 * \pi * v)
+      \end{align*}
+      \caption{The Gaussian Distribution in ProbaML.}
+      \label{fig:gaussian}
+    }}
+\end{figure}
+
 \subsection{REPL}
 
 \section{Evaluation and Results}
 \subsection{Graphing the Results and Jupyter Notebook}
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[scale=1]{gaussian.png}
+  \caption{PDF of the Gaussian distribution overlaid with the distribution generated from ProbaML.}
+\end{figure}
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[scale=1]{exponential.png}
+  \caption{PDF of the exponential distribution overlaid with the distribution generated from ProbaML.}
+\end{figure}
 
 \section{Conclusions}
 
