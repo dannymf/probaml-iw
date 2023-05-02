@@ -50,3 +50,138 @@
   publisher = {ACM},
   address   = {New York, NY, USA}
 } 
+
+@article{functional_pearls,
+  title     = {FUNCTIONAL PEARLS: Probabilistic functional programming in Haskell},
+  volume    = {16},
+  doi       = {10.1017/S0956796805005721},
+  number    = {1},
+  journal   = {Journal of Functional Programming},
+  publisher = {Cambridge University Press},
+  author    = {Erwig, Martin and Kollmansberger, Steve},
+  year      = {2006},
+  pages     = {21-34}
+}
+
+@article{pfenning_long,
+  author     = {Park, Sungwoo and Pfenning, Frank and Thrun, Sebastian},
+  title      = {A Probabilistic Language Based on Sampling Functions},
+  year       = {2008},
+  issue_date = {December 2008},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {31},
+  number     = {1},
+  issn       = {0164-0925},
+  url        = {https://doi.org/10.1145/1452044.1452048},
+  doi        = {10.1145/1452044.1452048},
+  abstract   = {As probabilistic computations play an increasing role in solving various problems, researchers have designed probabilistic languages which treat probability distributions as primitive datatypes. Most probabilistic languages, however, focus only on discrete distributions and have limited expressive power. This article presents a probabilistic language, called λ○, whose expressive power is beyond discrete distributions. Rich expressiveness of λ○ is due to its use of sampling functions, that is, mappings from the unit interval (0.0,1.0] to probability domains, in specifying probability distributions. As such, λ○ enables programmers to formally express and reason about sampling methods developed in simulation theory. The use of λ○ is demonstrated with three applications in robotics: robot localization, people tracking, and robotic mapping. All experiments have been carried out with real robots.},
+  journal    = {ACM Trans. Program. Lang. Syst.},
+  month      = {Dec},
+  articleno  = {4},
+  numpages   = {46},
+  keywords   = {probability distribution, robotics, Probabilistic language, sampling function}
+}
+
+@article{pfenning_short,
+  author     = {Park, Sungwoo and Pfenning, Frank and Thrun, Sebastian},
+  title      = {A Probabilistic Language Based upon Sampling Functions},
+  year       = {2005},
+  issue_date = {January 2005},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {40},
+  number     = {1},
+  issn       = {0362-1340},
+  url        = {https://doi.org/10.1145/1047659.1040320},
+  doi        = {10.1145/1047659.1040320},
+  abstract   = {As probabilistic computations play an increasing role in solving various problems, researchers have designed probabilistic languages that treat probability distributions as primitive datatypes. Most probabilistic languages, however, focus only on discrete distributions and have limited expressive power. In this paper, we present a probabilistic language, called λο, which uniformly supports all kinds of probability distributions -- discrete distributions, continuous distributions, and even those belonging to neither group. Its mathematical basis is sampling functions, i.e., mappings from the unit interval (0.0,1.0] to probability domains.We also briefly describe the implementation of λο as an extension of Objective CAML and demonstrate its practicality with three applications in robotics: robot localization, people tracking, and robotic mapping. All experiments have been carried out with real robots.},
+  journal    = {SIGPLAN Not.},
+  month      = {Jan},
+  pages      = {171-182},
+  numpages   = {12},
+  keywords   = {probabilistic language, probability distribution, sampling function, robotics}
+}
+
+@inproceedings{moggi,
+  author    = {Moggi, E.},
+  booktitle = {[1989] Proceedings. Fourth Annual Symposium on Logic in Computer Science},
+  title     = {Computational lambda-calculus and monads},
+  year      = {1989},
+  volume    = {},
+  number    = {},
+  pages     = {14-23},
+  doi       = {10.1109/LICS.1989.39155}
+}
+
+@inproceedings{park_calc_prob,
+  author    = {Park, Sungwoo},
+  title     = {A Calculus for Probabilistic Languages},
+  year      = {2003},
+  isbn      = {1581136498},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/604174.604180},
+  doi       = {10.1145/604174.604180},
+  abstract  = {As probabilistic computation plays an increasing role in diverse fields in computer science, researchers have designed new languages to facilitate the development of probabilistic programs. In this paper, we develop a probabilistic calculus by extending the traditional lambda calculus. In our calculus, every expression denotes a probability distribution yet evaluates to a regular value. The most notable feature of our calculus is that it is founded upon sampling functions, which map the unit interval to probability domains. As a consequence, we achieve a unified representation scheme for all types of probability distributions. In order to support an efficient implementation of the calculus, we also develop a refinement type system which is capable of distinguishing expressions denoting regular values from expressions denoting probability distributions. We use a novel formulation of the intuitionistic modal logic S4 with an intersection connective in the refinement type system. We present preliminary evidence that a probabilistic language based upon our calculus is viable in applications involving massive probabilistic computation.},
+  booktitle = {Proceedings of the 2003 ACM SIGPLAN International Workshop on Types in Languages Design and Implementation},
+  pages     = {38-49},
+  numpages  = {12},
+  keywords  = {refinement type system, probabilistic calculus, probabilistic language},
+  location  = {New Orleans, Louisiana, USA},
+  series    = {TLDI '03}
+}
+
+@article{pfenning_davies_2001,
+  title     = {A judgmental reconstruction of modal logic},
+  volume    = {11},
+  doi       = {10.1017/S0960129501003322},
+  number    = {4},
+  journal   = {Mathematical Structures in Computer Science},
+  publisher = {Cambridge University Press},
+  author    = {PFENNING, FRANK and DAVIES, ROWAN},
+  year      = {2001},
+  pages     = {511-540}
+}
+
+@misc{ocaml_random,
+  author = {Leroy, Xavier and Doligez, Damien},
+  title  = {Random Module, The {OC}aml {S}td{L}ib {M}odule for generating pseudo-random numbers},
+  url    = {https://v2.ocaml.org/releases/5.0/api/Random.html}
+}
+
+@misc{ocaml_map,
+  author = {Leroy, Xavier},
+  title  = {Map Module, The {OC}aml {S}td{L}ib {M}odule for Association tables over ordered types},
+  url    = {https://v2.ocaml.org/releases/5.0/api/Map.html}
+}
+
+@inproceedings{cs3110_book,
+  author    = {Clarkson, Michael R.},
+  booktitle = {OCaml Programming: Correct + Efficient + Beautiful},
+  title     = {Interpreters},
+  year      = {2023},
+  url       = {https://cs3110.github.io/textbook/}
+}
+
+@misc{cos326_site,
+  author = {Appel, Andrew and Walker, David},
+  title  = {{COS}326 {F}unctional {P}rogramming {C}ourse {S}ite},
+  year   = {Fall 2022},
+  url    = {https://www.cs.princeton.edu/courses/archive/fall22/cos326/}
+}
+
+@misc{wiki:Inverse_transform_sampling,
+  author       = {Wikipedia},
+  title        = {{Inverse transform sampling} --- {W}ikipedia{,} The Free Encyclopedia},
+  year         = {2023},
+  howpublished = {\url{http://en.wikipedia.org/w/index.php?title=Inverse\%20transform\%20sampling&oldid=1136223796}}
+}
+
+@misc{wiki:Box-Muller_transform,
+  author       = {Wikipedia},
+  title        = {{Box-Muller transform} --- {W}ikipedia{,} The Free Encyclopedia},
+  year         = {2023},
+  howpublished = {\url{http://en.wikipedia.org/w/index.php?title=Box\%E2\%80\%93Muller\%20transform&oldid=1137354154}}
+}
+% cos326 code, 
